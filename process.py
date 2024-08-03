@@ -64,7 +64,7 @@ class Process:
         self.processed_buffers = []
         self.t0 = time.time()
         self.fft = []
-        self.roi_idx = 0
+        self.ROIidx=0
         self.sdnn=0
         self.rmssd=0
         self.progress = 0
@@ -76,8 +76,7 @@ class Process:
 
     def run(self):
         self.initialize_start_time()
-        print(self.roi_idx)
-        frame, face_frame, ROI1, ROI2, status, mask, leftEye, rightEye = self.fd.face_detect(self.frame_in, self.roi_idx)
+        frame, face_frame, ROI1, ROI2, status, mask, leftEye, rightEye = self.fd.face_detect(self.frame_in,self.ROIidx)
         self.frame_out = frame
         self.frame_ROI = face_frame
         self.process_frame(ROI1, ROI2)
@@ -93,7 +92,7 @@ class Process:
         g2, r2, b2, _ = self.extract_color(ROI2)
         g, r, b = (g1 + g2) / 2, (r1 + r2) / 2, (b1 + b2) / 2
         self.update_buffers(g, r, b)
-        #self.calculate_metrics(g, r, b)
+        self.calculate_metrics(g, r, b)
 
     def extract_color(self, frame):
         b = np.mean(frame[:, :, 0])
@@ -125,9 +124,29 @@ class Process:
         self.save_data()
 
     def calculate_bp(self, value, color):
+        
         processed = self.process_buffer(self.data_buffer if color == 'green' else (self.data_buffer_red if color == 'red' else self.data_buffer_blue))
-        #self.processed_buffers.append(processed)
-        #self.bpms.append(self.get_bpm(processed))
+
+        if len(self.data_buffer) == self.buffer_size:
+            L = len(self.data_buffer)
+            self.fps = float(L) / (self.times[-1] - self.times[0])
+            even_times = np.linspace(self.times[0], self.times[-1], L)
+
+            #ICA
+            #A_=self.ICA(processed)
+            #processed =A_[0]
+
+            self.data_buffer2.append(processed)
+            self.bpms.append(self.get_bpm(processed))
+
+
+        if len(self.data_buffer_red) == self.buffer_size:
+            self.data_buffer2_red.append(processed)
+            #self.bpms.append(self.get_bpm(processed))
+
+        if len(self.data_buffer_blue) == self.buffer_size:
+            self.data_buffer2_blue.append(processed)
+            #self.bpms.append(self.get_bpm(processed))
 
     def process_buffer(self, buffer):
         buffer = np.array(buffer)

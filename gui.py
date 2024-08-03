@@ -18,12 +18,12 @@ import saving
 class GUI(QMainWindow, QThread):
     def __init__(self):
         super(GUI, self).__init__()
+        self.process = Process()
         self.initUI()
         self.webcam = Webcam()
         self.input = self.webcam
         self.dirname = ""
         #self.btnOpen.setEnabled(False)
-        self.process = Process()
         self.SpO2 = SpO2_calculation()
         self.status = False
         self.frame = np.zeros((10, 10, 3), np.uint8)
@@ -126,12 +126,12 @@ class GUI(QMainWindow, QThread):
         self.input_SBP = create_input_field(tab, "SBP", 10, 190, "請輸入SBP", "input_SBP", font2, font4)
         self.input_DBP = create_input_field(tab, "DBP", 10, 290, "請輸入DBP", "input_DBP", font2, font4)
         self.input_RR = create_input_field(tab, "RR", 10, 390, "請輸入RR", "input_RR", font2, font4)
-        create_combobox(tab, "譫妄", 400, 90, ["有無明顯譫妄", "明顯譫妄", "無明顯譫妄"], font2)
-        create_input_field(tab, "Hb", 400, 190, "g/dL", "input_Hb", font2, font4)
-        create_input_field(tab, "膽色素", 400, 290, "mg/dL", "input_Bilirubin", font2, font4)
-        create_combobox(tab, "抽血", 400, 390, ["無", "開始抽血", "結束抽血"], font2)
-        create_input_field(tab, "SPO2", 10, 550, "請輸入SPO2", "input_SPO2", font2, font4)
-        create_input_field(tab, "G/S", 10, 610, "請輸入血糖", "input_Glucose", font2, font4)
+        self.cbb_delirium = create_combobox(tab, "譫妄", 400, 90, ["有無明顯譫妄", "明顯譫妄", "無明顯譫妄"], font2)
+        self.input_Hb = create_input_field(tab, "Hb", 400, 190, "g/dL", "input_Hb", font2, font4)
+        self.input_Bilirubin = create_input_field(tab, "膽色素", 400, 290, "mg/dL", "input_Bilirubin", font2, font4)
+        self.cbb_BloodTime = create_combobox(tab, "抽血", 400, 390, ["無", "開始抽血", "結束抽血"], font2)
+        self.input_SPO2 = create_input_field(tab, "SPO2", 10, 550, "請輸入SPO2", "input_SPO2", font2, font4)
+        self.input_Glucose = create_input_field(tab, "G/S", 10, 610, "請輸入血糖", "input_Glucose", font2, font4)
 
         self.btnSave = QPushButton("Save", tab)
         self.btnSave.move(10, 700)
@@ -373,7 +373,7 @@ class GUI(QMainWindow, QThread):
         self.reset()
         roi_names = ["全臉", "額頭", "下巴", "臉頰"]
         roi_name = roi_names[self.cbbROI.currentIndex()]
-        self.process.roi_idx = self.cbbROI.currentIndex()
+        self.process.ROIidx = self.cbbROI.currentIndex()
         QMessageBox.warning(self, "更改掃描區域 !", "提醒您 :\n您已更改掃描區域為: " + roi_name, QMessageBox.Ok, QMessageBox.Ok)
 
     def reset(self):
@@ -440,6 +440,7 @@ class GUI(QMainWindow, QThread):
         self.process.subject_num = self.input_num.text()   #學號/編號
         self.process.subject_name = self.input_name.text() #姓名
         self.process.subject_count = self.input_count.text()
+        self.process.ROIidx = self.cbbROI.currentIndex()
 
         if self.cbb_gender.currentIndex() == 1:
             self.process.subject_gender = "男"
@@ -474,4 +475,11 @@ class GUI(QMainWindow, QThread):
                 self.btnStart.setText("Start")
                 self.cbbCamera.setEnabled(True)
                 self.cbbROI.setEnabled(True)
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    ex = GUI()
+    while ex.status:
+        ex.main_loop()
+    sys.exit(app.exec_())
 
