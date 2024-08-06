@@ -435,12 +435,12 @@ class GUI(QMainWindow, QThread):
         self.key_handler()
 
     def run(self, input):
-        self.reset()
+        #self.reset()
         #以下輸入
         self.process.subject_num = self.input_num.text()   #學號/編號
         self.process.subject_name = self.input_name.text() #姓名
         self.process.subject_count = self.input_count.text()
-        self.process.ROIidx = self.cbbROI.currentIndex()
+        #self.process.ROIidx = self.cbbROI.currentIndex()
 
         if self.cbb_gender.currentIndex() == 1:
             self.process.subject_gender = "男"
